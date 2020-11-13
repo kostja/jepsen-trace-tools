@@ -23,18 +23,24 @@ def parse_cmd_line():
 def match(line, key):
     return True
 
-def prettify(line, key)
-    return line
+def prettify(line, key):
+    return re.sub("^\d\d\d\d\(.*\)$", "\1", line)
+
+def process(f, args):
+    while True:
+        l = f.readline()
+        if not l:
+            break
+        if match(l, args.key):
+            sys.stdout.write(l)
 
 def main():
     args = parse_cmd_line()
-    with open(args.path[0], "r") as f:
-        while True:
-            l = f.readline()
-            if not l:
-                break
-            if match(l, args.key):
-                sys.stdout.write(prettify(l, args.key))
+    if args.path:
+        with open(args.path[0], "r") as f:
+            process(f, args)
+    else:
+        process(sys.stdin, args)
 
 if __name__ == "__main__":
     main()

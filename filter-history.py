@@ -31,15 +31,21 @@ def match(line, key):
         return False
     return True
 
+def process(f, args):
+    while True:
+        l = f.readline()
+        if not l:
+            break
+        if match(l, args.key):
+            sys.stdout.write(l)
+
 def main():
     args = parse_cmd_line()
-    with open(args.path[0], "r") as f:
-        while True:
-            l = f.readline()
-            if not l:
-                break
-            if match(l, args.key):
-                sys.stdout.write(l)
+    if args.path:
+        with open(args.path[0], "r") as f:
+            process(f, args)
+    else:
+        process(sys.stdin, args)
 
 if __name__ == "__main__":
     main()
