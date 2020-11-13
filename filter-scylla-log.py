@@ -20,15 +20,31 @@ def parse_cmd_line():
     args = parser.parse_args()
     return args
 
+re1 = re.compile(r".*scylla:  \[shard")
+
+re2 = re.compile(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (\w+) scylla:  \[shard 0\] (.*)$")
+
+re3 = r"(UPDATE(?:(?!UPDATE).)*AND id = {} IF lwt_trivial = null)"
+
+re4 = r"(SELECT.*AND id = {})"
+
 def match(line, key):
-    return re.match(r".*scylla:  \[shard", line)
+    return re1.match(line) and re.match(".*query_processor.*", line)
 
 def prettify(line, key):
-    m = re.findall(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (\w+) scylla:  \[shard 0\] (.*)$", line)
+    m = re2.findall(line)
     if not m:
         return ''
     time, shard, l = m[0]
-    return l + "\n"
+    m = re3.findall(l)
+    if len(m):
+        l = m[0]
+        return "{} {} {}\n".format(time, shard, l)
+    m = re4.findall(l)
+    if len(m):
+        l = m[0]
+        return "{} {} {}\n".format(time, shard, l)
+    return None
 
 def process(f, args):
     while True:
@@ -37,12 +53,18 @@ def process(f, args):
             break
         if match(l, args.key):
             try:
-                sys.stdout.write(prettify(l, args.key))
+                l = prettify(l, args.key)
+                if l:
+                    sys.stdout.write(l)
             except BrokenPipeError:
                 break
 
 def main():
     args = parse_cmd_line()
+    global re3
+    global re4
+    re3 = re.compile(re3.format(args.key))
+    re4 = re.compile(re4.format(args.key))
     if args.path:
         with open(args.path[0], "r") as f:
             process(f, args)
