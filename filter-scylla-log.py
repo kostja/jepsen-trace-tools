@@ -26,7 +26,7 @@ re2 = re.compile(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (\w+) s
 
 re3 = r"(UPDATE(?:(?!UPDATE).)*AND id = {} IF lwt_trivial = null)"
 
-re4 = r"(SELECT.*AND id = {})"
+re4 = r"(SELECT.*AND id = {});"
 
 def match(line, key):
     return re1.match(line) and re.match(".*query_processor.*", line)
