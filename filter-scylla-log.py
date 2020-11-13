@@ -24,7 +24,7 @@ def match(line, key):
     return True
 
 def prettify(line, key):
-    return re.sub("^\d\d\d\d\(.*\)$", "\1", line)
+    return re.sub(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (.*)$", r"\1 \2", line)
 
 def process(f, args):
     while True:
@@ -32,7 +32,7 @@ def process(f, args):
         if not l:
             break
         if match(l, args.key):
-            sys.stdout.write(l)
+            sys.stdout.write(prettify(l, args.key))
 
 def main():
     args = parse_cmd_line()
