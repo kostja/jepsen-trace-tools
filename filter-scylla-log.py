@@ -24,27 +24,35 @@ re1 = re.compile(r".*scylla:  \[shard")
 
 re2 = re.compile(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (\w+) scylla:  \[shard 0\] (.*)$")
 
-re3 = r"(UPDATE(?:(?!UPDATE).)*AND id = {} IF lwt_trivial = null)"
+re3 = r"query_processor.*(UPDATE(?:(?!UPDATE).)*AND id = {} IF lwt_trivial = null)"
 
-re4 = r"(SELECT.*AND id = {});"
+re4 = r"query_processor.*(SELECT.*AND id = {});"
+
+counter = 101
 
 def match(line, key):
-    return re1.match(line) and re.match(".*query_processor.*", line)
+    return re1.match(line) #and re.match(".*query_processor.*", line)
 
 def prettify(line, key):
+    global counter
     m = re2.findall(line)
     if not m:
         return ''
     time, shard, l = m[0]
     m = re3.findall(l)
     if len(m):
+        counter = 0
         l = m[0]
         return "{} {} {}\n".format(time, shard, l)
     m = re4.findall(l)
     if len(m):
+        counter = 0
         l = m[0]
         return "{} {} {}\n".format(time, shard, l)
-    return None
+    counter = counter + 1
+    if counter > 100:
+        return None
+    return "{} {} {}\n".format(time, shard, l)
 
 def process(f, args):
     while True:
