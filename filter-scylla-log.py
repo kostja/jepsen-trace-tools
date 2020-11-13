@@ -21,10 +21,14 @@ def parse_cmd_line():
     return args
 
 def match(line, key):
-    return True
+    return re.match(r".*scylla:  \[shard", line)
 
 def prettify(line, key):
-    return re.sub(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (.*)$", r"\1 \2", line)
+    m = re.findall(r"^\d\d\d\d-\d\d-\d\dT\d\d:(\d\d\:\d\d\.\d+)\+\d\d:\d\d (\w+) scylla:  \[shard 0\] (.*)$", line)
+    if not m:
+        return ''
+    time, shard, l = m[0]
+    return l + "\n"
 
 def process(f, args):
     while True:
@@ -32,7 +36,10 @@ def process(f, args):
         if not l:
             break
         if match(l, args.key):
-            sys.stdout.write(prettify(l, args.key))
+            try:
+                sys.stdout.write(prettify(l, args.key))
+            except BrokenPipeError:
+                break
 
 def main():
     args = parse_cmd_line()
